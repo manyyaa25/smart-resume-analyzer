@@ -337,36 +337,80 @@ if uploaded_file:
                         missing_skills,
                         job_role
                     )
+            all_suggestions = []
+            for category in feedback.values():
+                all_suggestions.extend(category)
+            # ==========================
+            # RECOMMENDATIONS DISPLAY
+            # ==========================
 
-            st.subheader("📄 Resume Improvements")
+            if not any(feedback.values()):
 
-            for item in feedback["resume"]:
-
-                st.warning(item)
-
-            st.subheader("🛠 Skill Development")
-
-            for item in feedback["skills"]:
-
-                st.info(item)
-
-            st.subheader("💼 Experience Building")
-
-            if feedback["experience"]:
-
-                for item in feedback["experience"]:
-
-                    st.success(item)
+                st.success(
+                    "🎉 Excellent! Your resume is already well optimized for this role."
+                )
 
             else:
 
-                st.success("Excellent! Your resume already includes projects and practical experience.")
+                if feedback["resume"]:
 
-            st.subheader("🎓 Certifications")
+                    st.subheader(
+                        "📄 Resume Improvements"
+                    )
 
-            for item in feedback["certifications"]:
+                    for item in feedback["resume"]:
 
-                st.info(item)
+                        st.warning(item)
+
+                if feedback["skills"]:
+
+                    st.subheader(
+                        "🛠 Skill Development"
+                    )
+
+                    for item in feedback["skills"]:
+
+                        st.info(item)
+
+                if feedback["experience"]:
+
+                    st.subheader(
+                        "💼 Experience Building"
+                    )
+
+                    for item in feedback["experience"]:
+
+                        st.success(item)
+
+                else:
+
+                    st.subheader(
+                        "💼 Experience Building"
+                    )
+
+                    st.success(
+                        "Excellent! Your resume already includes projects and practical experience."
+                    )
+
+                if feedback["certifications"]:
+
+                    st.subheader(
+                        "🎓 Certifications"
+                    )
+
+                    for item in feedback["certifications"]:
+
+                        st.info(item)
+
+                else:
+
+                    st.subheader(
+                        "🎓 Certifications"
+                    )
+
+                    st.success(
+                        "Relevant certifications detected."
+                    )
 
         
         with tab4:
@@ -390,9 +434,7 @@ if uploaded_file:
                     st.write(
                         ai_analysis
                     )
-            all_suggestions = []
-            for category in feedback.values():
-                all_suggestions.extend(category)
+        
             if ai_analysis:
                 generate_pdf_report(
                 "resume_report.pdf",
