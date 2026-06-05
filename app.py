@@ -36,49 +36,90 @@ def get_career_roadmap(job_role):
     roadmaps = {
 
         "Data Analyst": [
-            "Learn Power BI",
-            "Learn Tableau",
-            "Build Dashboard Projects",
+
+            "Build Sales Analytics Dashboard",
+            "Build Customer Churn Analysis Project",
+            "Build HR Attrition Dashboard",
             "Earn Google Data Analytics Certification"
+
         ],
 
         "Data Scientist": [
-            "Build Machine Learning Projects",
-            "Participate in Kaggle",
-            "Learn Deep Learning",
-            "Master Statistics"
+
+            "Build House Price Prediction Project",
+            "Participate in Kaggle Competitions",
+            "Build Recommendation System",
+            "Learn Deep Learning"
+
         ],
 
         "AI Engineer": [
-            "Build NLP Projects",
-            "Learn TensorFlow",
-            "Learn Vector Databases",
-            "Create Generative AI Apps"
+
+            "Build NLP Chatbot",
+            "Build Resume Analyzer",
+            "Develop Generative AI Applications",
+            "Learn Vector Databases"
+
+        ],
+
+        "Frontend Developer": [
+
+            "Build Portfolio Website",
+            "Build E-Commerce Frontend",
+            "Build Task Management App",
+            "Master React"
+
+        ],
+
+        "Backend Developer": [
+
+            "Build REST API Project",
+            "Build Authentication System",
+            "Build Inventory Management Backend",
+            "Learn Docker"
+
         ],
 
         "Financial Analyst": [
-            "Master Financial Modeling",
-            "Learn Valuation",
-            "Build Case Studies",
-            "Prepare for CFA/NISM"
+
+            "Build DCF Valuation Model",
+            "Create Financial Dashboard",
+            "Perform Ratio Analysis Project",
+            "Prepare for CFA Level 1"
+
         ],
 
         "Business Analyst": [
-            "Improve SQL Skills",
-            "Learn Power BI",
-            "Build Dashboards",
-            "Practice Business Cases"
+
+            "Create Business KPI Dashboard",
+            "Build Power BI Reports",
+            "Perform Market Analysis Case Study",
+            "Improve SQL Skills"
+
+        ],
+
+        "Cloud Engineer": [
+
+            "Deploy Applications on AWS",
+            "Build CI/CD Pipeline",
+            "Learn Terraform",
+            "Earn AWS Certification"
+
         ]
+
     }
 
     return roadmaps.get(
+
         job_role,
+
         [
             "Build Projects",
             "Gain Experience",
             "Earn Certifications",
             "Improve Domain Knowledge"
         ]
+
     )
 # ==========================
 # API CONFIGURATION
@@ -245,19 +286,19 @@ if uploaded_file:
             "Executive Summary"
             )
 
-            summary = f"""
-            Resume Grade: {resume_grade}
+            st.markdown(f"""
 
-            Career Readiness: {career_readiness}%
+            🎯 **Target Role:** {job_role}
 
-            Target Role: {job_role}
+            🏆 **Resume Grade:** {resume_grade}
 
-            Matched Skills: {len(matched_skills)}
+            📈 **Career Readiness:** {career_readiness}%
 
-            Missing Skills: {len(missing_skills)}
-            """
+            ✅ **Matched Skills:** {len(matched_skills)}
 
-            st.info(summary)
+            ❌ **Missing Skills:** {len(missing_skills)}
+            """)
+
         with tab2:
 
             with st.expander(
@@ -287,25 +328,47 @@ if uploaded_file:
 
             for step in roadmap:
 
-                st.info(step)
+                st.success(step)
 
-            suggestions = generate_feedback(
-                text,
-                resume_score,
-                ats_score,
-                missing_skills,
-                job_role
-            )
+            feedback = generate_feedback(
+                        text,
+                        resume_score,
+                        ats_score,
+                        missing_skills,
+                        job_role
+                    )
 
-            st.subheader(
-                "Smart Recommendations"
-            )
+            st.subheader("📄 Resume Improvements")
 
-            for suggestion in suggestions:
+            for item in feedback["resume"]:
 
-                st.warning(
-                    suggestion
-                )
+                st.warning(item)
+
+            st.subheader("🛠 Skill Development")
+
+            for item in feedback["skills"]:
+
+                st.info(item)
+
+            st.subheader("💼 Experience Building")
+
+            if feedback["experience"]:
+
+                for item in feedback["experience"]:
+
+                    st.success(item)
+
+            else:
+
+                st.success("Excellent! Your resume already includes projects and practical experience.")
+
+            st.subheader("🎓 Certifications")
+
+            for item in feedback["certifications"]:
+
+                st.info(item)
+
+        
         with tab4:
 
             if st.button(
@@ -327,6 +390,9 @@ if uploaded_file:
                     st.write(
                         ai_analysis
                     )
+            all_suggestions = []
+            for category in feedback.values():
+                all_suggestions.extend(category)
             if ai_analysis:
                 generate_pdf_report(
                 "resume_report.pdf",
@@ -335,7 +401,7 @@ if uploaded_file:
                 ats_score,
                 matched_skills,
                 missing_skills,
-                suggestions,
+                all_suggestions,
                 ai_analysis
             )
 

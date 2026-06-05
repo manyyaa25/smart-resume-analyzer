@@ -7,6 +7,7 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet
 from datetime import datetime
 
+
 def generate_pdf_report(
     filename,
     job_role,
@@ -24,11 +25,16 @@ def generate_pdf_report(
 
     content = []
 
+    # =====================
+    # TITLE
+    # =====================
+
     content.append(
         Paragraph(
-        "SMART RESUME ANALYZER",
-        styles["Title"]
-    ))
+            "SMART RESUME ANALYZER",
+            styles["Title"]
+        )
+    )
 
     content.append(
         Paragraph(
@@ -37,34 +43,13 @@ def generate_pdf_report(
         )
     )
 
-
     content.append(
         Spacer(1, 12)
     )
-    content.append(
-    Paragraph(
-        f"Generated On: {datetime.now().strftime('%d-%m-%Y')}",
-        styles["Normal"]
-        )
-    )
 
     content.append(
         Paragraph(
-            f"Target Role: {job_role}",
-            styles["Normal"]
-        )
-    )
-
-    content.append(
-        Paragraph(
-            f"Resume Score: {resume_score}/100",
-            styles["Normal"]
-        )
-    )
-
-    content.append(
-        Paragraph(
-            f"ATS Compatibility: {ats_score}%",
+            f"Generated On: {datetime.now().strftime('%d-%m-%Y')}",
             styles["Normal"]
         )
     )
@@ -72,6 +57,68 @@ def generate_pdf_report(
     content.append(
         Spacer(1, 12)
     )
+
+    # =====================
+    # SUMMARY
+    # =====================
+
+    career_readiness = round(
+        (resume_score + ats_score) / 2
+    )
+
+    if career_readiness >= 90:
+        grade = "A+"
+    elif career_readiness >= 80:
+        grade = "A"
+    elif career_readiness >= 70:
+        grade = "B"
+    elif career_readiness >= 60:
+        grade = "C"
+    else:
+        grade = "D"
+
+    content.append(
+        Paragraph(
+            f"<b>Target Role:</b> {job_role}",
+            styles["Normal"]
+        )
+    )
+
+    content.append(
+        Paragraph(
+            f"<b>Resume Score:</b> {resume_score}/100",
+            styles["Normal"]
+        )
+    )
+
+    content.append(
+        Paragraph(
+            f"<b>ATS Compatibility:</b> {ats_score}%",
+            styles["Normal"]
+        )
+    )
+
+    content.append(
+        Paragraph(
+            f"<b>Career Readiness:</b> {career_readiness}%",
+            styles["Normal"]
+        )
+    )
+
+    content.append(
+        Paragraph(
+            f"<b>Resume Grade:</b> {grade}",
+            styles["Normal"]
+        )
+    )
+
+    content.append(
+        Spacer(1, 15)
+    )
+
+    # =====================
+    # MATCHED SKILLS
+    # =====================
 
     content.append(
         Paragraph(
@@ -93,6 +140,10 @@ def generate_pdf_report(
         Spacer(1, 12)
     )
 
+    # =====================
+    # MISSING SKILLS
+    # =====================
+
     content.append(
         Paragraph(
             "Missing Skills",
@@ -113,6 +164,10 @@ def generate_pdf_report(
         Spacer(1, 12)
     )
 
+    # =====================
+    # RECOMMENDATIONS
+    # =====================
+
     content.append(
         Paragraph(
             "Recommendations",
@@ -128,11 +183,16 @@ def generate_pdf_report(
                 styles["Normal"]
             )
         )
-    if ai_analysis:
 
-        content.append(
-            Spacer(1, 12)
-        )
+    content.append(
+        Spacer(1, 12)
+    )
+
+    # =====================
+    # AI ANALYSIS
+    # =====================
+
+    if ai_analysis:
 
         content.append(
             Paragraph(
@@ -142,30 +202,35 @@ def generate_pdf_report(
         )
 
         content.append(
-            Spacer(1, 12)
+            Spacer(1, 10)
         )
 
-        sections = ai_analysis.split("\n")
+        paragraphs = ai_analysis.split("\n")
 
-        for section in sections:
+        for para in paragraphs:
 
-            section = section.strip()
+            para = para.strip()
 
-            if section:
+            if para:
 
                 content.append(
                     Paragraph(
-                        section,
+                        para,
                         styles["Normal"]
                     )
                 )
 
                 content.append(
-                    Spacer(1, 6)
+                    Spacer(1, 4)
                 )
+
+    # =====================
+    # FOOTER
+    # =====================
+
     content.append(
-    Spacer(1, 20)
-)
+        Spacer(1, 20)
+    )
 
     content.append(
         Paragraph(
@@ -173,4 +238,5 @@ def generate_pdf_report(
             styles["Italic"]
         )
     )
+
     doc.build(content)
