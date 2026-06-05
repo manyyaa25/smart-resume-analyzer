@@ -1,0 +1,356 @@
+import streamlit as st
+import google.generativeai as genai
+import plotly.express as px
+import os
+from dotenv import load_dotenv
+
+from modules.pdf_parser import extract_text
+from modules.prompts import resume_analysis_prompt
+from modules.resume_analyzer import analyze_resume
+from modules.ats_checker import calculate_resume_score
+from modules.keyword_matcher import calculate_ats_match
+from modules.job_roles import JOB_ROLES
+from modules.feedback_generator import generate_feedback
+from modules.report_generator import generate_pdf_report
+
+def get_resume_grade(score):
+
+    if score >= 90:
+        return "A+"
+
+    elif score >= 80:
+        return "A"
+
+    elif score >= 70:
+        return "B"
+
+    elif score >= 60:
+        return "C"
+
+    else:
+        return "D"
+
+
+def get_career_roadmap(job_role):
+
+    roadmaps = {
+
+        "Data Analyst": [
+            "Learn Power BI",
+            "Learn Tableau",
+            "Build Dashboard Projects",
+            "Earn Google Data Analytics Certification"
+        ],
+
+        "Data Scientist": [
+            "Build Machine Learning Projects",
+            "Participate in Kaggle",
+            "Learn Deep Learning",
+            "Master Statistics"
+        ],
+
+        "AI Engineer": [
+            "Build NLP Projects",
+            "Learn TensorFlow",
+            "Learn Vector Databases",
+            "Create Generative AI Apps"
+        ],
+
+        "Financial Analyst": [
+            "Master Financial Modeling",
+            "Learn Valuation",
+            "Build Case Studies",
+            "Prepare for CFA/NISM"
+        ],
+
+        "Business Analyst": [
+            "Improve SQL Skills",
+            "Learn Power BI",
+            "Build Dashboards",
+            "Practice Business Cases"
+        ]
+    }
+
+    return roadmaps.get(
+        job_role,
+        [
+            "Build Projects",
+            "Gain Experience",
+            "Earn Certifications",
+            "Improve Domain Knowledge"
+        ]
+    )
+# ==========================
+# API CONFIGURATION
+# ==========================
+
+load_dotenv()
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+genai.configure(api_key=API_KEY)
+
+# ==========================
+# PAGE CONFIG
+# ==========================
+
+st.set_page_config(
+    page_title="Smart Resume Analyzer",
+    layout="wide"
+)
+
+st.title("📄 Smart Resume Analyzer")
+
+st.write(
+    "Upload your resume and receive ATS analysis, skill gap detection, smart recommendations, and AI-powered feedback."
+)
+
+# ==========================
+# SIDEBAR
+# ==========================
+
+with st.sidebar:
+
+    st.header("Resume Settings")
+
+    uploaded_file = st.file_uploader(
+        "Upload Resume (PDF)",
+        type="pdf"
+    )
+
+    job_role = st.selectbox(
+        "Select Target Role",
+        sorted(JOB_ROLES.keys())
+    )
+
+# ==========================
+# MAIN DASHBOARD
+# ==========================
+
+if uploaded_file:
+
+    try:
+
+        text = extract_text(uploaded_file)
+
+        st.success("Resume Uploaded Successfully!")
+
+        # ==========================
+        # MODULE 2
+        # ==========================
+
+        resume_score = calculate_resume_score(text)
+
+        # ==========================
+        # MODULE 3
+        # ==========================
+
+        ats_score, matched_skills, missing_skills = (
+            calculate_ats_match(
+                text,
+                job_role
+            )
+        )
+        career_readiness = round(
+        (resume_score + ats_score) / 2
+        )
+
+        resume_grade = get_resume_grade(
+            career_readiness
+        )
+
+        ai_analysis = ""
+
+        # ==========================
+        # DASHBOARD KPI CARDS
+        # ==========================
+
+        tab1, tab2, tab3, tab4 = st.tabs([
+        "📊 Dashboard",
+        "🧠 Skills Analysis",
+        "💡 Recommendations",
+        "🤖 AI Review"
+    ])
+        with tab1:
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric(
+                    "Resume Score",
+                    f"{resume_score}/100"
+                )
+
+            with col2:
+                st.metric(
+                    "ATS Match",
+                    f"{ats_score}%"
+                )
+
+            with col3:
+                st.metric(
+                    "Career Readiness",
+                    f"{career_readiness}%"
+                )
+
+            with col4:
+                st.metric(
+                    "Resume Grade",
+                    resume_grade
+                )
+
+            st.progress(
+                career_readiness / 100
+            )
+            if career_readiness >= 80:
+
+                st.success(
+                    "🟢 Excellent Resume Health"
+                )
+
+            elif career_readiness >= 60:
+
+                st.warning(
+                    "🟡 Good Resume Health"
+                )
+
+            else:
+
+                st.error(
+                    "🔴 Needs Improvement"
+                )
+
+            chart_data = {
+                "Category": [
+                    "Matched Skills",
+                    "Missing Skills"
+                ],
+                "Count": [
+                    len(matched_skills),
+                    len(missing_skills)
+                ]
+            }
+
+            fig = px.pie(
+                chart_data,
+                names="Category",
+                values="Count",
+                title="ATS Skill Match Analysis"
+            )
+
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
+            st.subheader(
+            "Executive Summary"
+            )
+
+            summary = f"""
+            Resume Grade: {resume_grade}
+
+            Career Readiness: {career_readiness}%
+
+            Target Role: {job_role}
+
+            Matched Skills: {len(matched_skills)}
+
+            Missing Skills: {len(missing_skills)}
+            """
+
+            st.info(summary)
+        with tab2:
+
+            with st.expander(
+                "Matched Skills"
+            ):
+
+                for skill in matched_skills:
+
+                    st.success(skill)
+
+            with st.expander(
+                "Missing Skills"
+            ):
+
+                for skill in missing_skills:
+
+                    st.error(skill)
+        with tab3:
+
+            roadmap = get_career_roadmap(
+                job_role
+            )
+
+            st.subheader(
+                "Career Roadmap"
+            )
+
+            for step in roadmap:
+
+                st.info(step)
+
+            suggestions = generate_feedback(
+                text,
+                resume_score,
+                ats_score,
+                missing_skills,
+                job_role
+            )
+
+            st.subheader(
+                "Smart Recommendations"
+            )
+
+            for suggestion in suggestions:
+
+                st.warning(
+                    suggestion
+                )
+        with tab4:
+
+            if st.button(
+                "Generate AI Resume Analysis"
+            ):
+
+                with st.spinner(
+                    "Analyzing Resume..."
+                ):
+
+                    prompt = resume_analysis_prompt(
+                        text[:15000]
+                    )
+
+                    ai_analysis = analyze_resume(
+                        prompt
+                    )
+
+                    st.write(
+                        ai_analysis
+                    )
+            if ai_analysis:
+                generate_pdf_report(
+                "resume_report.pdf",
+                job_role,
+                resume_score,
+                ats_score,
+                matched_skills,
+                missing_skills,
+                suggestions,
+                ai_analysis
+            )
+
+                with open(
+                    "resume_report.pdf",
+                    "rb"
+                ) as pdf_file:
+
+                    st.download_button(
+                        label="📄 Download PDF Report",
+                        data=pdf_file,
+                        file_name="resume_report.pdf",
+                        mime="application/pdf"
+                    )
+    except Exception as e:
+        st.error(
+            f"Technical Error: {e}"
+        )   
