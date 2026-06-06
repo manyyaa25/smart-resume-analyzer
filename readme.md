@@ -88,13 +88,13 @@ streamlit run app.py
 ![Dashboard](assets/dashboard.png)
 
 ### Skills Analysis
-![Skills Analysis](assets/skills analysis.png)
+![Skills Analysis](assets/skills_analysis.png)
 
 ### Recommendations
 ![Recommendations](assets/recommendations.png)
 
 ### AI Review
-![AI Review](assets/ai-review.png)
+![AI Review](assets/ai_review.png)
 
 ### PDF Report
 ![PDF Report](assets/pdf_report.png)
