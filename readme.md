@@ -82,6 +82,25 @@ streamlit run app.py
 
 ---
 
+## Screenshots
+
+### Dashboard
+![Dashboard](assets/dashboard.png)
+
+### Skills Analysis
+![Skills Analysis](assets/skills analysis.png)
+
+### Recommendations
+![Recommendations](assets/recommendations.png)
+
+### AI Review
+![AI Review](assets/ai-review.png)
+
+### PDF Report
+![PDF Report](assets/pdf_report.png)
+
+---
+
 ## Author
 
 Manya Morakhia
